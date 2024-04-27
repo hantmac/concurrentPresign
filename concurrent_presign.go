@@ -22,11 +22,15 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for j := 0; j < 100; j++ {
-				url, err := executePresign(db)
+				//url, err := executePresign(db)
+				//if err != nil {
+				//	panic(err)
+				//}
+				//fmt.Println(url)
+				err := executeSelectOne(db)
 				if err != nil {
 					panic(err)
 				}
-				fmt.Println(url)
 			}
 		}()
 	}
@@ -58,4 +62,24 @@ func executePresign(db *sql.DB) (string, error) {
 	}
 
 	return "", fmt.Errorf("no url found")
+}
+
+func executeSelectOne(db *sql.DB) error {
+	startTime := time.Now()
+	rows, err := db.Query("SELECT 1")
+	endTime := time.Now()
+	fmt.Printf("executeSelectOne took: %d ms\n", endTime.Sub(startTime).Milliseconds())
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var one int
+		err := rows.Scan(&one)
+		if err != nil {
+			return err
+		}
+		fmt.Println(one)
+	}
+	return nil
 }
