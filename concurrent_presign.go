@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -11,11 +13,11 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("databend", "http://databend:databend@localhost:8000")
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
+	//db, err := sql.Open("databend", "http://databend:databend@localhost:8000")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer db.Close()
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
@@ -27,10 +29,7 @@ func main() {
 				//	panic(err)
 				//}
 				//fmt.Println(url)
-				err := executeSelectOne(db)
-				if err != nil {
-					panic(err)
-				}
+				executeByCurl()
 			}
 		}()
 	}
@@ -82,4 +81,24 @@ func executeSelectOne(db *sql.DB) error {
 		fmt.Println(one)
 	}
 	return nil
+}
+
+func executeByCurl() {
+	// curl -X POST http://localhost:8000/api/query -d 'SELECT 1'
+	startTime := time.Now()
+	err := runCommand(`curl -u databend:databend -X POST http://localhost:8000/v1/query --header 'Content-Type: application/json' --data-raw '{"sql":"SELECT 1"}'`)
+	endTime := time.Now()
+	fmt.Printf("executeCurl took: %d ms\n", endTime.Sub(startTime).Milliseconds())
+	if err != nil {
+		log.Fatalf("Error running command: %v", err)
+	}
+}
+
+func runCommand(command string) error {
+	cmd := exec.Command("bash", "-c", command)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Error running command: %v", err)
+	}
+	return err
 }
