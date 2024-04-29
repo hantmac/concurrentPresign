@@ -13,11 +13,11 @@ import (
 )
 
 func main() {
-	//db, err := sql.Open("databend", "http://databend:databend@localhost:8000")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer db.Close()
+	db, err := sql.Open("databend", "http://databend:databend@localhost:8000")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
@@ -29,7 +29,11 @@ func main() {
 				//	panic(err)
 				//}
 				//fmt.Println(url)
-				executeByCurl()
+				//executeByCurl()
+				err = executeSelectOne(db)
+				if err != nil {
+					panic(err)
+				}
 			}
 		}()
 	}
